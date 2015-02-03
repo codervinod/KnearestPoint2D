@@ -15,27 +15,36 @@ class Points2D
 public:
     Points2D(double x,double y):_x(x),_y(y)
     {
-        _dist = ((_x*_x) + (_y*_y));
     }
     virtual ~Points2D()
     {
     }
-    double getDist() const { return _dist;}
+    double getDist(const Points2D &origin) const
+    {
+        double xDist = (origin.GetX() - _x);
+        double yDist = (origin.GetY() - _y);
+        double dist = ((xDist*xDist) + (yDist*yDist));
+
+        return dist;
+    }
     
-    double GetX() {return _x;}
-    double GetY() {return _y;}
+    double GetX() const {return _x;}
+    double GetY() const {return _y;}
 private:
     double _x;
     double _y;
-    double _dist;
 };
 
-struct ComparePoints
+class ComparePoints
 {
+public:
+    ComparePoints (const Points2D &origin):_origin(origin){}
     bool operator()(const Points2D &lhs,const Points2D &rhs)
     {
-        return (lhs.getDist() > rhs.getDist());
+        return (lhs.getDist(_origin) < rhs.getDist(_origin));
     }
+private:
+    Points2D _origin;
 };
 
 class NearestPoint2D
@@ -44,25 +53,30 @@ public:
     NearestPoint2D() {}
     virtual ~NearestPoint2D() {}
     
-    void AddPoints(const Points2D &points) {_points_pq.push(points);}
+    void AddPoints(const Points2D &points) {_points.push_back(points);}
     
-    bool GetNearestPoints(vector<Points2D> &nearest_points,int K)
+    bool GetNearestPoints(const Points2D &origin,vector<Points2D> &nearest_points,int K)
     {
-        for(int i=0;i<K;++i)
+        ComparePoints comp(origin);
+        
+        std::make_heap(_points.begin(),_points.end(),comp);
+        std::sort_heap(_points.begin(),_points.end(),comp);
+        
+        for(Points::iterator itr = _points.begin(); itr != _points.end(); ++itr)
         {
-            if(_points_pq.empty()){
-                return false;
-            }
+            if(nearest_points.size() >= K)
+                return true;
             
-            nearest_points.push_back(_points_pq.top());
-            _points_pq.pop();
+            nearest_points.push_back(*itr);
         }
-        return true;
+        
+        
+        return false;
     }
 private:
-    typedef priority_queue<Points2D,vector<Points2D>,ComparePoints> PointsPQ;
+    typedef vector<Points2D> Points;
     
-    PointsPQ _points_pq;
+    Points _points;
 };
 
 int main(int argc, const char * argv[]) {
@@ -76,7 +90,7 @@ int main(int argc, const char * argv[]) {
     point_container.AddPoints(Points2D(30,10));
     
     vector<Points2D> nearest_points;
-    point_container.GetNearestPoints(nearest_points,3);
+    point_container.GetNearestPoints(Points2D(30,10),nearest_points,3);
     
     for(vector<Points2D>::iterator itr = nearest_points.begin(); itr != nearest_points.end(); ++itr)
     {
