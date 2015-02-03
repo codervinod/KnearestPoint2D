@@ -73,9 +73,15 @@ int main(int argc, const char * argv[]) {
     point_container.AddPoints(Points2D(5,14));
     point_container.AddPoints(Points2D(10,10));
     point_container.AddPoints(Points2D(15,15));
+    point_container.AddPoints(Points2D(30,10));
     
     vector<Points2D> nearest_points;
-    point_container.GetNearestPoints(nearest_points,2);
-    cout<<"Nearest Point" << nearest_points[0].GetX()<<" "<<nearest_points[0].GetY()<<endl;
+    point_container.GetNearestPoints(nearest_points,3);
+    
+    for(vector<Points2D>::iterator itr = nearest_points.begin(); itr != nearest_points.end(); ++itr)
+    {
+        cout<<"Nearest Point " << itr->GetX()<<" "<<itr->GetY()<<endl;
+    }
+    cout<<endl;
     return 0;
 }
